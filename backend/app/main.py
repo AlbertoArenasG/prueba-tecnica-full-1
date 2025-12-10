@@ -1,10 +1,13 @@
-from fastapi import FastAPI, Depends, HTTPException, Query
-from fastapi.middleware.cors import CORSMiddleware
-from typing import List, Optional
+import logging
 from datetime import datetime
-from . import models, schemas, crud
-from .database import SessionLocal, engine
+from typing import Dict, Any, List, Optional
+
+from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+
+from . import crud, models, schemas
+from .database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -36,8 +39,6 @@ def get_db():
     finally:
         db.close()
 
-from typing import Dict, Any
-
 @app.get("/campaigns/", response_model=Dict[str, Any])
 def read_campaigns(
     skip: int = Query(0, ge=0),
@@ -48,13 +49,20 @@ def read_campaigns(
     """
     Get all campaigns with pagination and optional filtering by campaign type.
     """
-    campaigns = crud.get_campaigns(db, skip=skip, limit=limit, tipo_campania=tipo_campania)
-    return {
-        "data": campaigns,
-        "total": len(campaigns),
-        "page": skip // limit,
-        "pageSize": limit
-    }
+    logger = logging.getLogger("uvicorn.error")
+    try:
+        campaigns, total = crud.get_campaigns(db, skip=skip, limit=limit, tipo_campania=tipo_campania)
+        data = [schemas.Campaign.from_orm(campaign).dict() for campaign in campaigns]
+        logger.info("Fetched %s campaigns (total=%s, skip=%s, limit=%s)", len(data), total, skip, limit)
+        return {
+            "data": data,
+            "total": total,
+            "page": skip // limit,
+            "pageSize": limit
+        }
+    except Exception as exc:
+        logger.exception("Error while fetching campaigns")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 @app.get("/campaigns/{campaign_id}", response_model=schemas.CampaignDetail)
 def read_campaign(campaign_id: str, db: Session = Depends(get_db)):

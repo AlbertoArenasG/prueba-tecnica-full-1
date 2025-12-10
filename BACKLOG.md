@@ -17,16 +17,16 @@
 ## Backlog
 | ID | Área | Tarea | Detalles | Estado | Dependencias |
 | --- | --- | --- | --- | --- | --- |
-| B1 | DevOps | Dockerfile backend | Dockerfile listo para producción (multi-stage opcional) que ejecute FastAPI vía Uvicorn, instale dependencias desde `backend/requirements.txt`, exponga el puerto y monte volumen para `campaigns.db` y CSV. | Completado | — |
-| B2 | DevOps | Dockerfile frontend | Imagen Vite/React con caché de dependencias, paso de build y servidor liviano (p.ej. `vite preview` o `nginx`) configurado con la URL del backend mediante variables. | Completado | B1 |
-| B3 | DevOps | Configuración docker-compose | Servicios (backend, frontend, worker opcional), red compartida, archivos `.env`, bind mount del directorio CSV para el seed y comandos dev (`docker compose up`). | Completado | B1-B2 |
-| B4 | Datos | Automatizar seed de DB | Usar los CSV como fuente oficial; garantizar que el script se ejecute en el contenedor del backend, sea idempotente y documentar cómo refrescar los datos. | Por hacer | B3 |
-| B5 | Backend | API listado campañas | Ajustar `/campaigns`: paginación servidor (límite 5 por defecto), filtro `tipo_campania` opcional y metadatos (`total`, `page`, `pageSize`). | Por hacer | B4 |
-| B6 | Backend | Búsqueda por fechas | Fortalecer `/campaigns/search-by-date` con validación, parseo seguro y mejoras de rendimiento (índices). Responder con el mismo formato del listado. | Por hacer | B5 |
-| B7 | Backend | Datos de detalle/resumen | Ampliar `/campaigns/{id}` (o rutas nuevas) para entregar los tres datasets de “Resumen” listos para gráficas y agregados útiles. | Por hacer | B5 |
-| B8 | Frontend | Capa cliente API | Centralizar configuración Axios (base URL/env), modelos TS alineados con Pydantic, estados de carga/error y hooks para listar/buscar/detallar. | Por hacer | B5-B7 |
-| B9 | Frontend | Tabla y paginación | Construir tabla con 5 filas por página, columnas requeridas y botones sincronizados con los metadatos de paginación. | Por hacer | B8 |
-| B10 | Frontend | Filtros y búsqueda | Selector de tipo y formulario de rango de fechas usando `react-hook-form` + `zod`; integrar con la recarga del backend manteniendo los parámetros. | Por hacer | B8 |
-| B11 | Frontend | Visualizaciones detalle | Panel/modal con resúmenes de sitios, periodos y campaña usando gráficas sencillas (D3/Recharts) alimentadas por el backend. | Por hacer | B7-B10 |
-| B12 | Calidad | Pruebas y lint | Añadir pytest para CRUD/rutas, smoke tests del seed y vitest/react-testing-library para UI; hacer cumplir via scripts npm/pip y CI. | Por hacer | B5-B11 |
-| B13 | Docs | README y despliegue | Documentar setup docker/manual, variables, flujo de seed y ruta sugerida para despliegue en la nube. | Por hacer | B1-B12 |
+| B1 | DevOps | Dockerfile backend | Dockerfile listo para producción (multi-stage opcional) que ejecute FastAPI vía Uvicorn, instale dependencias desde `backend/requirements.txt`, exponga el puerto y monte volumen para `campaigns.db` y CSV. | [x] Completado | — |
+| B2 | DevOps | Dockerfile frontend | Imagen Vite/React con caché de dependencias, paso de build y servidor liviano (p.ej. `vite preview` o `nginx`) configurado con la URL del backend mediante variables. | [x] Completado | B1 |
+| B3 | DevOps | Configuración docker-compose | Servicios (backend, frontend, worker opcional), red compartida, archivos `.env`, bind mount del directorio CSV para el seed y comandos dev (`docker compose up`). | [x] Completado | B1-B2 |
+| B4 | Datos | Automatizar seed de DB | Usar los CSV como fuente oficial; garantizar que el script se ejecute en el contenedor del backend, sea idempotente y documentar cómo refrescar los datos. | [x] Completado | B3 |
+| B5 | Backend | API listado campañas | Ajustar `/campaigns`: paginación servidor (límite 5 por defecto), filtro `tipo_campania` opcional y metadatos (`total`, `page`, `pageSize`). | [ ] Por hacer | B4 |
+| B6 | Backend | Búsqueda por fechas | Fortalecer `/campaigns/search-by-date` con validación, parseo seguro y mejoras de rendimiento (índices). Responder con el mismo formato del listado. | [ ] Por hacer | B5 |
+| B7 | Backend | Datos de detalle/resumen | Ampliar `/campaigns/{id}` (o rutas nuevas) para entregar los tres datasets de “Resumen” listos para gráficas y agregados útiles. | [ ] Por hacer | B5 |
+| B8 | Frontend | Capa cliente API | Centralizar configuración Axios (base URL/env), modelos TS alineados con Pydantic, estados de carga/error y hooks para listar/buscar/detallar. | [ ] Por hacer | B5-B7 |
+| B9 | Frontend | Tabla y paginación | Construir tabla con 5 filas por página, columnas requeridas y botones sincronizados con los metadatos de paginación. | [ ] Por hacer | B8 |
+| B10 | Frontend | Filtros y búsqueda | Selector de tipo y formulario de rango de fechas usando `react-hook-form` + `zod`; integrar con la recarga del backend manteniendo los parámetros. | [ ] Por hacer | B8 |
+| B11 | Frontend | Visualizaciones detalle | Panel/modal con resúmenes de sitios, periodos y campaña usando gráficas sencillas (D3/Recharts) alimentadas por el backend. | [ ] Por hacer | B7-B10 |
+| B12 | Calidad | Pruebas y lint | Añadir pytest para CRUD/rutas, smoke tests del seed y vitest/react-testing-library para UI; hacer cumplir via scripts npm/pip y CI. | [ ] Por hacer | B5-B11 |
+| B13 | Docs | README y despliegue | Documentar setup docker/manual, variables, flujo de seed y ruta sugerida para despliegue en la nube. | [ ] Por hacer | B1-B12 |

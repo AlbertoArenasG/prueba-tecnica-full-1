@@ -99,3 +99,16 @@ Sigue un patrón cliente-servidor:
 - `bd_campanias_agrupado.csv`: Datos generales de campañas
 - `bd_campanias_periodos.csv`: Información por períodos
 - `bd_campanias_sitios.csv`: Detalles de sitios publicitarios que componen las campañas
+
+## Puesta en Marcha con Docker
+1. **Requisitos**: Docker Desktop (o Docker Engine) con soporte para `docker compose`.
+2. **Construir e iniciar**:
+   ```bash
+   docker compose up --build
+   ```
+   El contenedor del backend leerá los CSV montados en `backend/data`, sembrará la base SQLite (volumen `backend-db`) y expondrá la API en `http://localhost:8080`. El frontend quedará disponible en `http://localhost:4173`.
+3. **Re-sembrar datos manualmente** (opcional):  
+   ```bash
+   docker compose run --rm backend python seed.py
+   ```
+   Útil cuando se quieran refrescar los datos sin reconstruir imágenes.

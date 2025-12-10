@@ -1,8 +1,13 @@
-import pandas as pd
-import numpy as np
+import os
+from pathlib import Path
 from datetime import datetime
+
+import pandas as pd
+
 from app.database import SessionLocal, engine
 from app.models import Base, Campaign, CampaignPeriod, CampaignSite
+
+DATA_DIR = Path(os.getenv("DATA_DIR", "data"))
 
 def clean_number(x):
     if isinstance(x, str) and '-' in x:
@@ -10,26 +15,45 @@ def clean_number(x):
         return int(x.split('-')[0])
     return x
 
+def read_csv(file_name: str) -> pd.DataFrame:
+    file_path = DATA_DIR / file_name
+    if not file_path.exists():
+        raise FileNotFoundError(f"No se encontró el archivo requerido: {file_path}")
+    return pd.read_csv(file_path)
+
 def load_data():
-    # Create tables
+    # Reset schema to avoid duplicados
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 
     try:
         # Read and clean agrupado data
-        df_agrupado = pd.read_csv('data/bd_campanias_agrupado.csv')
-        
+        df_agrupado = read_csv('bd_campanias_agrupado.csv')
+        df_agrupado['name_norm'] = df_agrupado['name'].astype(str).str.strip().str.lower()
+        df_agrupado = df_agrupado.drop_duplicates(subset=['name_norm']).drop(columns=['name_norm'])
+
         # Read and clean periodos data
-        df_periodos = pd.read_csv('data/bd_campanias_periodos.csv')
-        df_periodos['impactos_periodo_vehiculos'] = df_periodos['impactos_periodo_vehículos'].apply(clean_number)
-        
+        df_periodos = read_csv('bd_campanias_periodos.csv')
+        df_periodos['name_norm'] = df_periodos['name'].astype(str).str.strip().str.lower()
+        df_periodos['period_norm'] = df_periodos['period'].astype(str).str.strip().str.lower()
+        df_periodos = df_periodos.drop_duplicates(subset=['name_norm', 'period_norm']).drop(columns=['name_norm', 'period_norm'])
+        vehicles_col = 'impactos_periodo_vehículos'
+        if vehicles_col not in df_periodos.columns:
+            vehicles_col = 'impactos_periodo_vehiculos'
+        df_periodos['impactos_periodo_vehiculos'] = df_periodos[vehicles_col].apply(clean_number)
+
         # Read and clean sitios data
-        df_sitios = pd.read_csv('data/bd_campanias_sitios.csv')
+        df_sitios = read_csv('bd_campanias_sitios.csv')
+        df_sitios['name_norm'] = df_sitios['name'].astype(str).str.strip().str.lower()
+        df_sitios['codigo_norm'] = df_sitios['codigo_del_sitio'].astype(str).str.strip().str.lower()
+        df_sitios = df_sitios.drop_duplicates(subset=['name_norm', 'codigo_norm']).drop(columns=['name_norm', 'codigo_norm'])
 
         # Process campaigns
         for _, row in df_agrupado.iterrows():
+            name = str(row['name']).strip()
             campaign = Campaign(
-                name=row['name'],
+                name=name,
                 tipo_campania=row['tipo_campania'],
                 fecha_inicio=datetime.strptime(row['fecha_inicio'], '%Y-%m-%d').date(),
                 fecha_fin=datetime.strptime(row['fecha_fin'], '%Y-%m-%d').date(),
@@ -56,12 +80,17 @@ def load_data():
                 mujeres=row['mujeres']
             )
             db.add(campaign)
+        
+        # Commit campaigns first
+        db.commit()
 
         # Process periods
         for _, row in df_periodos.iterrows():
+            name = str(row['name']).strip()
+            period_value = str(row['period']).strip()
             period = CampaignPeriod(
-                campaign_name=row['name'],
-                period=row['period'],
+                campaign_name=name,
+                period=period_value,
                 impactos_periodo_personas=row['impactos_periodo_personas'],
                 impactos_periodo_vehiculos=row['impactos_periodo_vehiculos']
             )
@@ -69,9 +98,11 @@ def load_data():
 
         # Process sites
         for _, row in df_sitios.iterrows():
+            name = str(row['name']).strip()
+            site_code = str(row['codigo_del_sitio']).strip()
             site = CampaignSite(
-                campaign_name=row['name'],
-                codigo_del_sitio=row['codigo_del_sitio'],
+                campaign_name=name,
+                codigo_del_sitio=site_code,
                 tipo_de_mueble=row['tipo_de_mueble'],
                 tipo_de_anuncio=row['tipo_de_anuncio'],
                 estado=row['estado'],
@@ -85,6 +116,7 @@ def load_data():
             )
             db.add(site)
 
+        # Commit periods and sites
         db.commit()
     except Exception as e:
         print(f"Error: {e}")

@@ -12,6 +12,7 @@ services:
       - backend-db:/data
     environment:
       - DATABASE_URL=sqlite:////data/campaigns.db
+      - DATA_DIR=/app/data
 
   frontend:
     build:
