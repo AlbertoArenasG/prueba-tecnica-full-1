@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: campaigns-backend
+    ports:
+      - "8080:8000"
+    volumes:
+      - ./backend/data:/app/data:ro
+      - backend-db:/data
+    environment:
+      - DATABASE_URL=sqlite:////data/campaigns.db
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - VITE_API_URL=http://backend:8000
+    container_name: campaigns-frontend
+    ports:
+      - "4173:80"
+    depends_on:
+      - backend
+
+volumes:
+  backend-db:

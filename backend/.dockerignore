@@ -1,0 +1,11 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.pyc.*
+campaigns.db
+venv
+data/*.csv
+.pytest_cache
+.mypy_cache
+.DS_Store
