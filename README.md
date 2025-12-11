@@ -100,15 +100,98 @@ Sigue un patrón cliente-servidor:
 - `bd_campanias_periodos.csv`: Información por períodos
 - `bd_campanias_sitios.csv`: Detalles de sitios publicitarios que componen las campañas
 
-## Puesta en Marcha con Docker
-1. **Requisitos**: Docker Desktop (o Docker Engine) con soporte para `docker compose`.
-2. **Construir e iniciar**:
+## Puesta en marcha
+
+### Requisitos
+- Docker Desktop o Docker Engine con soporte para `docker compose`.
+- Node.js 20+ (sólo si deseas ejecutar el frontend sin contenedores).
+- Python 3.11+ y `pip` (sólo si deseas ejecutar el backend sin contenedores).
+
+### Variables de entorno clave
+| Servicio  | Variable        | Descripción                                                     | Valor por defecto |
+|-----------|-----------------|-----------------------------------------------------------------|-------------------|
+| Backend   | `DATABASE_URL`  | Ruta al archivo SQLite usado por FastAPI                        | `sqlite:///./campaigns.db` (en docker se sustituye por `sqlite:////data/campaigns.db`) |
+| Backend   | `DATA_DIR`      | Directorio con los CSV que alimentan el seed                    | `./data`          |
+| Frontend  | `VITE_API_URL`  | URL del backend consumida por Axios                             | `http://localhost:8080` |
+
+> En `docker-compose.yml` estas variables ya están definidas para ambos servicios. Si corres el proyecto manualmente, exporta las mismas variables en tu terminal.
+
+### Ejecución con Docker (recomendada)
+1. Construir e iniciar los servicios:
    ```bash
    docker compose up --build
    ```
-   El contenedor del backend leerá los CSV montados en `backend/data`, sembrará la base SQLite (volumen `backend-db`) y expondrá la API en `http://localhost:8080`. El frontend quedará disponible en `http://localhost:4173`.
-3. **Re-sembrar datos manualmente** (opcional):  
+   - Backend FastAPI disponible en `http://localhost:8080`.
+   - Frontend Vite (modo dev) sirviendo en `http://localhost:4173`.
+   - El script `seed.py` se ejecuta automáticamente al iniciar el contenedor del backend; los CSV se montan como read-only y la base SQLite vive en el volumen `backend-db`.
+2. Refrescar datos manualmente (opcional):
    ```bash
    docker compose run --rm backend python seed.py
    ```
-   Útil cuando se quieran refrescar los datos sin reconstruir imágenes.
+3. Detener los servicios:
+   ```bash
+   docker compose down
+   ```
+
+### Ejecución manual (sin Docker)
+#### Backend
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate          # .venv\Scripts\activate en Windows
+pip install -r requirements.txt
+export DATABASE_URL=sqlite:///./campaigns.db
+export DATA_DIR=./data
+python seed.py                     # Inicializa campaigns.db desde los CSV
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+La API quedará disponible en `http://localhost:8000`.
+
+#### Frontend
+```bash
+cd frontend
+npm install
+export VITE_API_URL=http://localhost:8080
+npm run dev -- --host 0.0.0.0 --port 4173
+```
+La aplicación quedará en `http://localhost:4173`. Ajusta `VITE_API_URL` si el backend corre en otra dirección.
+
+## Pruebas automatizadas
+- **Frontend (Vitest + Testing Library)**:
+  ```bash
+  cd frontend
+  npm test
+  ```
+- **Backend (pytest dentro del contenedor)**:
+  ```bash
+  docker compose run --rm backend pytest tests
+  ```
+  Esto levanta una base SQLite aislada (`test.db`) gracias a la configuración en `tests/conftest.py`.
+
+## Endpoints principales
+| Método | Ruta                          | Descripción                                    |
+|--------|-------------------------------|------------------------------------------------|
+| GET    | `/campaigns`                  | Listado paginado con filtro `tipo_campania`.   |
+| GET    | `/campaigns/search-by-date`   | Búsqueda por rango de fechas + paginación.     |
+| GET    | `/campaigns/{id}`             | Detalle con resúmenes de sitios, periodos y KPIs. |
+| GET    | `/health`                     | Health-check sencillo.                         |
+
+Ejemplo de cURL para filtros paginados:
+```bash
+curl "http://localhost:8080/campaigns?page=1&limit=5&tipo_campania=mensual"
+```
+Ejemplo de búsqueda por fecha:
+```bash
+curl "http://localhost:8080/campaigns/search-by-date?start_date=2025-01-01&end_date=2025-06-30&page=1&limit=5"
+```
+
+## Notas de despliegue
+- El backend es stateless; sólo requiere acceso de lectura a los CSV y un volumen persistente para `campaigns.db`. En la nube se puede usar un volumen administrado (EBS, Azure Disk, etc.) o migrar la DB a un servicio gestionado.
+- El frontend es una app Vite/React en modo dev dentro del compose. Para producción se puede ejecutar `npm run build` y servir el contenido estático con Nginx, Vercel o cualquier CDN, ajustando `VITE_API_URL` al dominio del backend.
+- Para pipelines CI/CD, se recomienda correr `npm run lint`, `npm test` y `docker compose run --rm backend pytest tests` antes de crear la imagen final.
+
+## Flujo recomendado de verificación
+1. `docker compose up --build` para levantar todo.
+2. Sembrar datos adicionales si es necesario (`docker compose run --rm backend python seed.py`).
+3. Ejecutar las suites de pruebas (frontend + backend).
+4. Navegar a `http://localhost:4173`, aplicar filtros de tipo y fechas, abrir el modal de detalle y verificar datos con los endpoints de arriba usando cURL o herramientas como Postman.
