@@ -22,7 +22,7 @@
 | B3 | DevOps | Configuración docker-compose | Servicios (backend, frontend, worker opcional), red compartida, archivos `.env`, bind mount del directorio CSV para el seed y comandos dev (`docker compose up`). | [x] Completado | B1-B2 |
 | B4 | Datos | Automatizar seed de DB | Usar los CSV como fuente oficial; garantizar que el script se ejecute en el contenedor del backend, sea idempotente y documentar cómo refrescar los datos. | [x] Completado | B3 |
 | B5 | Backend | API listado campañas | Ajustar `/campaigns`: paginación servidor (límite 5 por defecto), filtro `tipo_campania` opcional y metadatos (`total`, `page`, `pageSize`). | [x] Completado | B4 |
-| B6 | Backend | Búsqueda por fechas | Fortalecer `/campaigns/search-by-date` con validación, parseo seguro y mejoras de rendimiento (índices). Responder con el mismo formato del listado. | [ ] Por hacer | B5 |
+| B6 | Backend | Búsqueda por fechas | Fortalecer `/campaigns/search-by-date` con validación, parseo seguro y mejoras de rendimiento (índices). Responder con el mismo formato del listado. | [x] Completado | B5 |
 | B7 | Backend | Datos de detalle/resumen | Ampliar `/campaigns/{id}` (o rutas nuevas) para entregar los tres datasets de “Resumen” listos para gráficas y agregados útiles. | [ ] Por hacer | B5 |
 | B8 | Frontend | Capa cliente API | Centralizar configuración Axios (base URL/env), modelos TS alineados con Pydantic, estados de carga/error y hooks para listar/buscar/detallar. | [ ] Por hacer | B5-B7 |
 | B9 | Frontend | Tabla y paginación | Construir tabla con 5 filas por página, columnas requeridas y botones sincronizados con los metadatos de paginación. | [ ] Por hacer | B8 |

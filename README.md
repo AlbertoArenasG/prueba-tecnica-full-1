@@ -24,6 +24,7 @@ Sobre este este esqueleto, construir un API HTTP y una interfaz de aplicación p
 ### Sistema de Filtros
 - **Por Tipo de Campaña:** (parámetro `tipo_campania` aceptando `mensual` o `catorcenal`)
 - **Navegación:** (parámetros `page` 1-indexado y `limit` para controlar la paginación)
+- **Rango de Fechas:** endpoint `/campaigns/search-by-date?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD&page=1&limit=5`
 - **Por Rango de Fechas:**
   - Búsqueda de campañas activas en períodos específicos
 

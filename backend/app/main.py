@@ -84,6 +84,68 @@ def read_campaigns(
         logger.exception("Error while fetching campaigns")
         raise HTTPException(status_code=500, detail="Internal server error") from exc
 
+@app.get("/campaigns/search-by-date", response_model=Dict[str, Any])
+def search_campaigns_by_date(
+    start_date: datetime = Query(..., description="Fecha de inicio (YYYY-MM-DD)"),
+    end_date: datetime = Query(..., description="Fecha fin (YYYY-MM-DD)"),
+    page: int = Query(1, ge=1, description="Número de página (1-indexado)"),
+    limit: int = Query(5, ge=1, le=50, description="Resultados por página"),
+    tipo_campania: Optional[str] = Query(
+        None,
+        description="Filtra por tipo de campaña (mensual/catorcenal)"
+    ),
+    db: Session = Depends(get_db)
+):
+    """
+    Search campaigns by date range.
+    """
+    logger = logging.getLogger("uvicorn.error")
+
+    if start_date > end_date:
+        raise HTTPException(
+            status_code=400,
+            detail="start_date debe ser anterior o igual a end_date"
+        )
+
+    normalized_type: Optional[str] = None
+    if tipo_campania:
+        normalized_type = tipo_campania.lower()
+        allowed_types = {"mensual", "catorcenal"}
+        if normalized_type not in allowed_types:
+            raise HTTPException(
+                status_code=400,
+                detail=f"tipo_campania debe ser uno de: {', '.join(sorted(allowed_types))}"
+            )
+
+    skip = (page - 1) * limit
+
+    try:
+        campaigns, total = crud.search_campaigns_by_date(
+            db,
+            start_date=start_date,
+            end_date=end_date,
+            skip=skip,
+            limit=limit,
+            tipo_campania=normalized_type
+        )
+        data = [schemas.Campaign.from_orm(campaign).dict() for campaign in campaigns]
+        logger.info(
+            "Date search returned %s campaigns (total=%s, page=%s, limit=%s)",
+            len(data),
+            total,
+            page,
+            limit
+        )
+        return {
+            "data": data,
+            "total": total,
+            "page": page,
+            "pageSize": limit
+        }
+    except Exception as exc:
+        logger.exception("Error while searching campaigns by date")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
+
 @app.get("/campaigns/{campaign_id}", response_model=schemas.CampaignDetail)
 def read_campaign(campaign_id: str, db: Session = Depends(get_db)):
     """
@@ -93,25 +155,3 @@ def read_campaign(campaign_id: str, db: Session = Depends(get_db)):
     if campaign is None:
         raise HTTPException(status_code=404, detail="Campaign not found")
     return campaign
-
-@app.get("/campaigns/search-by-date/", response_model=List[schemas.Campaign])
-def search_campaigns_by_date(
-    start_date: datetime,
-    end_date: datetime,
-    db: Session = Depends(get_db)
-):
-    """
-    Search campaigns by date range.
-    """
-    if start_date > end_date:
-        raise HTTPException(
-            status_code=400,
-            detail="Start date must be before end date"
-        )
-    
-    campaigns = crud.search_campaigns_by_date(
-        db,
-        start_date=start_date,
-        end_date=end_date
-    )
-    return campaigns
