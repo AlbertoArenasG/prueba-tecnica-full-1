@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { CampaignTable } from './components/CampaignTable';
 import { DateRangeForm } from './components/DateRangeForm';
-import { Campaign } from './types/campaign';
-import { getCampaigns, searchCampaignsByDate } from './api/campaigns';
+import { Campaign, CampaignDetail } from './types/campaign';
+import { getCampaigns, getCampaignDetail, searchCampaignsByDate } from './api/campaigns';
+import { CampaignDetailModal } from './components/CampaignDetailModal';
 
 function App() {
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -13,6 +14,9 @@ function App() {
     const [tipoCampania, setTipoCampania] = useState<string | undefined>();
     const [total, setTotal] = useState(0);
     const [dateFilter, setDateFilter] = useState<{ startDate: string; endDate: string } | null>(null);
+    const [selectedDetail, setSelectedDetail] = useState<CampaignDetail | null>(null);
+    const [detailLoading, setDetailLoading] = useState(false);
+    const [detailModalOpen, setDetailModalOpen] = useState(false);
 
     useEffect(() => {
         loadCampaigns();
@@ -63,6 +67,26 @@ function App() {
 
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
+    const handleRowClick = async (campaign: Campaign) => {
+        try {
+            setDetailLoading(true);
+            setDetailModalOpen(true);
+            setSelectedDetail(null);
+            const detail = await getCampaignDetail(campaign.name);
+            setSelectedDetail(detail);
+        } catch (err) {
+            console.error('Error loading campaign detail', err);
+            setError(err instanceof Error ? err.message : 'Error loading campaign detail');
+        } finally {
+            setDetailLoading(false);
+        }
+    };
+
+    const closeDetail = () => {
+        setDetailModalOpen(false);
+        setSelectedDetail(null);
+    };
+
     if (error) {
         return <div className="text-red-600">{error}</div>;
     }
@@ -107,7 +131,7 @@ function App() {
                 <>
                     <CampaignTable
                         data={campaigns}
-                        onRowClick={(campaign) => console.log('Selected campaign:', campaign)}
+                        onRowClick={handleRowClick}
                     />
                     <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <div className="flex gap-2">
@@ -132,6 +156,12 @@ function App() {
                     </div>
                 </>
             )}
+            <CampaignDetailModal
+                open={detailModalOpen}
+                data={selectedDetail}
+                loading={detailLoading}
+                onClose={closeDetail}
+            />
         </div>
     );
 }
