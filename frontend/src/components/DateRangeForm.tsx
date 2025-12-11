@@ -32,7 +32,7 @@ export const DateRangeForm: React.FC<DateRangeFormProps> = ({ onSubmit }) => {
 
     return (
         <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
-            <div className="flex space-x-4">
+            <div className="flex flex-col gap-4 md:flex-row">
                 <div className="flex-1">
                     <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
                         Start Date

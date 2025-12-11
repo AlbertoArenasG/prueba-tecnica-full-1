@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Campaign, CampaignDetail, PaginatedResponse } from '../types/campaign';
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
 
 // Create axios instance with custom config
 const api = axios.create({

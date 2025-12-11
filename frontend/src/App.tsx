@@ -75,16 +75,18 @@ function App() {
                 <h2 className="section-title">Search by Date Range</h2>
                 <DateRangeForm onSubmit={handleDateRangeSubmit} />
                 {dateFilter && (
-                    <button
-                        onClick={clearDateFilter}
-                        className="mt-2 px-3 py-1 border rounded text-sm"
-                    >
-                        Clear date filter
-                    </button>
+                    <div className="mt-2">
+                        <button
+                            onClick={clearDateFilter}
+                            className="inline-flex items-center gap-2 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300"
+                        >
+                            Clear date filter
+                        </button>
+                    </div>
                 )}
             </div>
 
-            <div className="form-group">
+            <div className="form-group max-w-md">
                 <label htmlFor="tipoCampania">
                     Campaign Type
                 </label>
@@ -107,24 +109,26 @@ function App() {
                         data={campaigns}
                         onRowClick={(campaign) => console.log('Selected campaign:', campaign)}
                     />
-                    <div className="mt-4 flex items-center justify-between">
-                        <button
-                            onClick={() => setPage(p => Math.max(1, p - 1))}
-                            disabled={page === 1}
-                            className="px-4 py-2 border rounded disabled:opacity-50"
-                        >
-                            Previous
-                        </button>
-                        <span className="px-4 py-2">
+                    <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                className="rounded-md border px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                Previous
+                            </button>
+                            <button
+                                onClick={() => setPage(p => p + 1)}
+                                disabled={page >= totalPages}
+                                className="rounded-md border px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                Next
+                            </button>
+                        </div>
+                        <span className="text-sm text-gray-600">
                             Page {page} of {totalPages}
                         </span>
-                        <button
-                            onClick={() => setPage(p => p + 1)}
-                            disabled={page >= totalPages}
-                            className="px-4 py-2 border rounded disabled:opacity-50"
-                        >
-                            Next
-                        </button>
                     </div>
                 </>
             )}

@@ -8,6 +8,15 @@ import {
 import { Campaign } from '../types/campaign';
 import { format } from 'date-fns';
 
+const formatNumber = (value: number | null | undefined) =>
+    typeof value === 'number' ? value.toLocaleString() : '—';
+
+const formatDate = (value: string | null | undefined) => {
+    if (!value) return '—';
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? '—' : format(parsed, 'dd/MM/yyyy');
+};
+
 const columnHelper = createColumnHelper<Campaign>();
 
 const columns = [
@@ -21,23 +30,23 @@ const columns = [
     }),
     columnHelper.accessor('fecha_inicio', {
         header: 'Fecha Inicio',
-        cell: info => format(new Date(info.getValue()), 'dd/MM/yyyy'),
+        cell: info => formatDate(info.getValue()),
     }),
     columnHelper.accessor('fecha_fin', {
         header: 'Fecha Fin',
-        cell: info => format(new Date(info.getValue()), 'dd/MM/yyyy'),
+        cell: info => formatDate(info.getValue()),
     }),
     columnHelper.accessor('impactos_personas', {
         header: 'Impactos (Personas)',
-        cell: info => info.getValue().toLocaleString(),
+        cell: info => formatNumber(info.getValue()),
     }),
     columnHelper.accessor('impactos_vehiculos', {
         header: 'Impactos (Vehículos)',
-        cell: info => info.getValue().toLocaleString(),
+        cell: info => formatNumber(info.getValue()),
     }),
     columnHelper.accessor('alcance', {
         header: 'Alcance',
-        cell: info => info.getValue().toLocaleString(),
+        cell: info => formatNumber(info.getValue()),
     }),
 ];
 
@@ -56,8 +65,10 @@ export const CampaignTable: React.FC<CampaignTableProps> = ({
         getCoreRowModel: getCoreRowModel(),
     });
 
+    const rows = table.getRowModel().rows;
+
     return (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto border rounded-md shadow-sm">
             <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                     {table.getHeaderGroups().map(headerGroup => (
@@ -79,25 +90,36 @@ export const CampaignTable: React.FC<CampaignTableProps> = ({
                     ))}
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                    {table.getRowModel().rows.map(row => (
-                        <tr
-                            key={row.id}
-                            onClick={() => onRowClick?.(row.original)}
-                            className="hover:bg-gray-100 cursor-pointer"
-                        >
-                            {row.getVisibleCells().map(cell => (
-                                <td
-                                    key={cell.id}
-                                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                                >
-                                    {flexRender(
-                                        cell.column.columnDef.cell,
-                                        cell.getContext()
-                                    )}
-                                </td>
-                            ))}
+                    {rows.length === 0 ? (
+                        <tr>
+                            <td
+                                colSpan={columns.length}
+                                className="px-6 py-6 text-center text-sm text-gray-500"
+                            >
+                                No campaigns found for the selected filters.
+                            </td>
                         </tr>
-                    ))}
+                    ) : (
+                        rows.map(row => (
+                            <tr
+                                key={row.id}
+                                onClick={() => onRowClick?.(row.original)}
+                                className="hover:bg-gray-100 cursor-pointer"
+                            >
+                                {row.getVisibleCells().map(cell => (
+                                    <td
+                                        key={cell.id}
+                                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-700"
+                                    >
+                                        {flexRender(
+                                            cell.column.columnDef.cell,
+                                            cell.getContext()
+                                        )}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))
+                    )}
                 </tbody>
             </table>
         </div>
