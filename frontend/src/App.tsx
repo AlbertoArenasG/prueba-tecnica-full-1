@@ -4,13 +4,14 @@ import { DateRangeForm } from './components/DateRangeForm';
 import { Campaign, CampaignDetail } from './types/campaign';
 import { getCampaigns, getCampaignDetail, searchCampaignsByDate } from './api/campaigns';
 import { CampaignDetailModal } from './components/CampaignDetailModal';
+import { SkeletonTable } from './components/SkeletonTable';
 
 function App() {
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [page, setPage] = useState(1);
-    const [pageSize] = useState(5);
+    const [pageSize, setPageSize] = useState(5);
     const [tipoCampania, setTipoCampania] = useState<string | undefined>();
     const [total, setTotal] = useState(0);
     const [dateFilter, setDateFilter] = useState<{ startDate: string; endDate: string } | null>(null);
@@ -93,40 +94,61 @@ function App() {
 
     return (
         <div className="app-container">
-            <h1 className="app-title">Campaign Analytics</h1>
+            <h1 className="app-title">Analítica de Campañas</h1>
 
-            <div className="section">
-                <h2 className="section-title">Search by Date Range</h2>
-                <DateRangeForm onSubmit={handleDateRangeSubmit} />
-                {dateFilter && (
-                    <div className="mt-2">
-                        <button
-                            onClick={clearDateFilter}
-                            className="inline-flex items-center gap-2 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300"
-                        >
-                            Clear date filter
-                        </button>
+            <div className="filters-panel">
+                <div className="filters-grid">
+                    <div className="filters-grid__block">
+                        <div className="filters-grid__item">
+                            <h2 className="section-title">Búsqueda por rango de fechas</h2>
+                            <DateRangeForm onSubmit={handleDateRangeSubmit} />
+                        </div>
+                        <div className="filters-grid__row">
+                            <div className="filters-grid__input">
+                                <label htmlFor="tipoCampania" className="block text-sm font-medium text-gray-700 mb-2">
+                                    Tipo de campaña
+                                </label>
+                                <select
+                                    id="tipoCampania"
+                                    value={tipoCampania || ''}
+                                    onChange={handleTipoCampaniaChange}
+                                    className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                >
+                                    <option value="">Todas</option>
+                                    <option value="mensual">Mensual</option>
+                                    <option value="catorcenal">Catorcenal</option>
+                                </select>
+                            </div>
+                            <div className="filters-grid__input">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Resultados por página</label>
+                                <select
+                                    value={pageSize}
+                                    onChange={(e) => {
+                                        setPage(1);
+                                        setPageSize(Number(e.target.value));
+                                    }}
+                                    className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                >
+                                    {[5, 10, 15].map(size => (
+                                        <option key={size} value={size}>{size} resultados</option>
+                                    ))}
+                                </select>
+                            </div>
+                            {dateFilter && (
+                                <button
+                                    onClick={clearDateFilter}
+                                    className="filters-grid__clear rounded-md px-3 py-2 text-sm font-medium text-gray-700"
+                                >
+                                    Limpiar filtro
+                                </button>
+                            )}
+                        </div>
                     </div>
-                )}
-            </div>
-
-            <div className="form-group max-w-md">
-                <label htmlFor="tipoCampania">
-                    Campaign Type
-                </label>
-                <select
-                    id="tipoCampania"
-                    value={tipoCampania || ''}
-                    onChange={handleTipoCampaniaChange}
-                >
-                    <option value="">All Types</option>
-                    <option value="mensual">Mensual</option>
-                    <option value="catorcenal">Catorcenal</option>
-                </select>
+                </div>
             </div>
 
             {loading ? (
-                <div>Loading...</div>
+                <SkeletonTable columns={7} rows={pageSize} />
             ) : (
                 <>
                     <CampaignTable
@@ -134,24 +156,24 @@ function App() {
                         onRowClick={handleRowClick}
                     />
                     <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                             <button
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page === 1}
-                                className="rounded-md border px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                                className="pill-button"
                             >
-                                Previous
+                                Anterior
                             </button>
                             <button
                                 onClick={() => setPage(p => p + 1)}
                                 disabled={page >= totalPages}
-                                className="rounded-md border px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                                className="pill-button"
                             >
-                                Next
+                                Siguiente
                             </button>
                         </div>
                         <span className="text-sm text-gray-600">
-                            Page {page} of {totalPages}
+                            Página {page} de {totalPages}
                         </span>
                     </div>
                 </>

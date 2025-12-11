@@ -21,19 +21,20 @@ const columnHelper = createColumnHelper<Campaign>();
 
 const columns = [
     columnHelper.accessor('name', {
-        header: 'Nombre',
-        cell: info => info.getValue(),
-    }),
-    columnHelper.accessor('tipo_campania', {
-        header: 'Tipo',
-        cell: info => info.getValue(),
+        header: 'Campaña',
+        cell: info => (
+            <div>
+                <p className="text-sm font-semibold text-slate-800">{info.getValue()}</p>
+                <p className="text-xs text-slate-400">{info.row.original.tipo_campania.toUpperCase()}</p>
+            </div>
+        ),
     }),
     columnHelper.accessor('fecha_inicio', {
-        header: 'Fecha Inicio',
+        header: 'Inicio',
         cell: info => formatDate(info.getValue()),
     }),
     columnHelper.accessor('fecha_fin', {
-        header: 'Fecha Fin',
+        header: 'Fin',
         cell: info => formatDate(info.getValue()),
     }),
     columnHelper.accessor('impactos_personas', {
@@ -68,60 +69,53 @@ export const CampaignTable: React.FC<CampaignTableProps> = ({
     const rows = table.getRowModel().rows;
 
     return (
-        <div className="overflow-x-auto border rounded-md shadow-sm">
-            <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                    {table.getHeaderGroups().map(headerGroup => (
-                        <tr key={headerGroup.id}>
-                            {headerGroup.headers.map(header => (
-                                <th
-                                    key={header.id}
-                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                >
-                                    {header.isPlaceholder
-                                        ? null
-                                        : flexRender(
-                                            header.column.columnDef.header,
-                                            header.getContext()
-                                        )}
-                                </th>
-                            ))}
-                        </tr>
-                    ))}
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                    {rows.length === 0 ? (
-                        <tr>
-                            <td
-                                colSpan={columns.length}
-                                className="px-6 py-6 text-center text-sm text-gray-500"
-                            >
-                                No campaigns found for the selected filters.
-                            </td>
-                        </tr>
-                    ) : (
-                        rows.map(row => (
-                            <tr
-                                key={row.id}
-                                onClick={() => onRowClick?.(row.original)}
-                                className="hover:bg-gray-100 cursor-pointer"
-                            >
-                                {row.getVisibleCells().map(cell => (
-                                    <td
-                                        key={cell.id}
-                                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-700"
-                                    >
-                                        {flexRender(
-                                            cell.column.columnDef.cell,
-                                            cell.getContext()
-                                        )}
-                                    </td>
+        <div className="table-wrapper">
+            <div className="table-scroll">
+                <table className="campaign-table">
+                    <thead>
+                        {table.getHeaderGroups().map(headerGroup => (
+                            <tr key={headerGroup.id}>
+                                {headerGroup.headers.map(header => (
+                                    <th key={header.id}>
+                                        {header.isPlaceholder
+                                            ? null
+                                            : flexRender(
+                                                header.column.columnDef.header,
+                                                header.getContext()
+                                            )}
+                                    </th>
                                 ))}
                             </tr>
-                        ))
-                    )}
-                </tbody>
-            </table>
+                        ))}
+                    </thead>
+                    <tbody>
+                        {rows.length === 0 ? (
+                            <tr>
+                                <td colSpan={columns.length} className="table-empty">
+                                    No hay campañas para los filtros actuales
+                                </td>
+                            </tr>
+                        ) : (
+                            rows.map(row => (
+                                <tr
+                                    key={row.id}
+                                    onClick={() => onRowClick?.(row.original)}
+                                    className="table-row"
+                                >
+                                    {row.getVisibleCells().map(cell => (
+                                        <td key={cell.id}>
+                                            {flexRender(
+                                                cell.column.columnDef.cell,
+                                                cell.getContext()
+                                            )}
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 };

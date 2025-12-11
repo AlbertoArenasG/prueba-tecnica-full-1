@@ -47,17 +47,17 @@ export const CampaignDetailModal: React.FC<Props> = ({ data, onClose, loading, o
                             {formatDate(data?.fecha_inicio)} – {formatDate(data?.fecha_fin)}
                         </p>
                     </div>
-                    <button className="modal-close" onClick={onClose} aria-label="Close detail modal">
+                    <button className="modal-close" onClick={onClose} aria-label="Cerrar detalle">
                         ✕
                     </button>
                 </div>
 
                 {loading || !data ? (
-                    <div className="modal-loading">Loading details…</div>
+                    <div className="modal-loading">Cargando detalle…</div>
                 ) : (
                     <div className="modal-content">
                         <section>
-                            <h4 className="section-heading">General summary</h4>
+                            <h4 className="section-heading">Resumen general</h4>
                             <div className="summary-grid">
                                 <SummaryCard label="Impactos (personas)" value={formatNumber(data.general_summary?.impactos_personas)} />
                                 <SummaryCard label="Impactos (vehículos)" value={formatNumber(data.general_summary?.impactos_vehiculos)} />
@@ -71,9 +71,9 @@ export const CampaignDetailModal: React.FC<Props> = ({ data, onClose, loading, o
                             <div className="data-block">
                                 <div className="data-block__header">
                                     <div>
-                                        <h4 className="section-heading">Period performance</h4>
+                                        <h4 className="section-heading">Desempeño por periodo</h4>
                                         <p className="section-subtitle">
-                                            {data.period_summary?.total_periodos ?? 0} periods • {formatNumber(data.period_summary?.impactos_personas)} personas
+                                            {data.period_summary?.total_periodos ?? 0} periodo(s) • {formatNumber(data.period_summary?.impactos_personas)} personas
                                         </p>
                                     </div>
                                 </div>
@@ -102,9 +102,9 @@ export const CampaignDetailModal: React.FC<Props> = ({ data, onClose, loading, o
                             <div className="data-block">
                                 <div className="data-block__header">
                                     <div>
-                                        <h4 className="section-heading">Top sites</h4>
+                                        <h4 className="section-heading">Sitios destacados</h4>
                                         <p className="section-subtitle">
-                                            {data.site_summary?.total_sitios ?? 0} sites • alcance promedio {formatNumber(data.site_summary?.alcance_mensual_promedio)}
+                                            {data.site_summary?.total_sitios ?? 0} sitio(s) • Alcance promedio {formatNumber(data.site_summary?.alcance_mensual_promedio)}
                                         </p>
                                     </div>
                                 </div>
