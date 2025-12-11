@@ -9,11 +9,5 @@ export default defineConfig({
         main: './src/main.tsx',
       },
     },
-  },
-  test: {
-    globals: true,
-    environment: 'happy-dom',
-    setupFiles: './src/setupTests.ts',
-    css: true
   }
 })
