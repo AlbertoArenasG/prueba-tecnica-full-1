@@ -68,73 +68,74 @@ export const CampaignDetailModal: React.FC<Props> = ({ data, onClose, loading, o
                         </section>
 
                         <section className="two-column">
-                            <div className="data-block">
-                                <div className="data-block__header">
-                                    <div>
-                                        <h4 className="section-heading">Desempeño por periodo</h4>
-                                        <p className="section-subtitle">
-                                            {data.period_summary?.total_periodos ?? 0} periodo(s) • {formatNumber(data.period_summary?.impactos_personas)} personas
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="data-table">
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Periodo</th>
-                                                <th className="text-right">Personas</th>
-                                                <th className="text-right">Vehículos</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {data.periods.slice(0, 6).map(period => (
-                                                <tr key={period.id}>
-                                                    <td>{period.period}</td>
-                                                    <td className="text-right">{formatNumber(period.impactos_periodo_personas)}</td>
-                                                    <td className="text-right">{formatNumber(period.impactos_periodo_vehiculos)}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <div className="data-block">
-                                <div className="data-block__header">
-                                    <div>
-                                        <h4 className="section-heading">Sitios destacados</h4>
-                                        <p className="section-subtitle">
-                                            {data.site_summary?.total_sitios ?? 0} sitio(s) • Alcance promedio {formatNumber(data.site_summary?.alcance_mensual_promedio)}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="data-table">
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Código</th>
-                                                <th>Tipo</th>
-                                                <th className="text-right">Impactos mensuales</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {data.sites.slice(0, 6).map(site => (
-                                                <tr key={site.id}>
-                                                    <td>{site.codigo_del_sitio}</td>
-                                                    <td>{site.tipo_de_anuncio ?? '—'}</td>
-                                                    <td className="text-right">{formatNumber(site.impactos_mensuales)}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
+                            <GeneralChart data={data} />
+                            <SitesChart data={data} />
                         </section>
                     </div>
                 )}
             </div>
         </div>,
         document.body
+    );
+};
+
+const GeneralChart: React.FC<{ data: CampaignDetail }> = ({ data }) => {
+    const periods = data.periods.slice(0, 6);
+    return (
+        <div className="chart-card">
+            <div className="chart-header">
+                <h4 className="section-heading">Impactos por periodo</h4>
+                <p className="section-subtitle">Comparativa personas vs vehículos</p>
+            </div>
+            <div className="chart-bars">
+                {periods.map((period) => {
+                    const maxValue = Math.max(
+                        period.impactos_periodo_personas ?? 0,
+                        period.impactos_periodo_vehiculos ?? 0
+                    );
+                    return (
+                        <div key={period.id} className="chart-bars__row">
+                            <span className="chart-bars__label">{period.period}</span>
+                            <div className="chart-bars__track">
+                                <div
+                                    className="chart-bars__value chart-bars__value--primary"
+                                    style={{ width: `${Math.min(100, (period.impactos_periodo_personas ?? 0) / maxValue * 100)}%` }}
+                                />
+                                <div
+                                    className="chart-bars__value chart-bars__value--secondary"
+                                    style={{ width: `${Math.min(100, (period.impactos_periodo_vehiculos ?? 0) / maxValue * 100)}%` }}
+                                />
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
+const SitesChart: React.FC<{ data: CampaignDetail }> = ({ data }) => {
+    const topSites = data.sites.slice(0, 6);
+    return (
+        <div className="chart-card">
+            <div className="chart-header">
+                <h4 className="section-heading">Sitios con más impactos</h4>
+                <p className="section-subtitle">Basado en impactos mensuales registrados</p>
+            </div>
+            <div className="chart-list">
+                {topSites.map((site) => (
+                    <div key={site.id} className="chart-list__row">
+                        <div>
+                            <p className="chart-list__title">{site.codigo_del_sitio}</p>
+                            <p className="chart-list__subtitle">{site.tipo_de_anuncio ?? '—'}</p>
+                        </div>
+                        <div className="chart-list__value">
+                            {formatNumber(site.impactos_mensuales)}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
     );
 };
 
