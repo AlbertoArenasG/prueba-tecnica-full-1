@@ -33,15 +33,15 @@ Al seleccionar una campaña, se pueden ver:
 
 1. **Resumen de Sitios**
    - Ventana con gráficas de resumen de sitios
-   - Datos desde `bd_campanias_sitios.csv`
+   - Datos desde `bd_campanias_sitios.csv` y el endpoint `/campaigns/{id}` (campo `site_summary`)
 
 2. **Resumen de Períodos**
    - Ventana con gráficas de desempeño por período
-   - Datos desde `bd_campanias_periodos.csv`
+   - Datos desde `bd_campanias_periodos.csv` y el endpoint `/campaigns/{id}` (`periods` + `period_summary`)
 
 3. **Resumen de Campaña**
    - Ventana con gráficas de resumen general
-   - Datos desde `bd_campanias_agrupado.csv`
+   - Datos desde `bd_campanias_agrupado.csv` y el endpoint `/campaigns/{id}` (`general_summary`)
 
 ## Stack Tecnológico
 

@@ -36,6 +36,24 @@ class CampaignSite(CampaignSiteBase):
         "from_attributes": True
     }
 
+class GeneralSummary(BaseModel):
+    impactos_personas: Optional[int] = None
+    impactos_vehiculos: Optional[int] = None
+    alcance: Optional[int] = None
+    frecuencia_calculada: Optional[float] = None
+    frecuencia_promedio: Optional[float] = None
+
+class PeriodSummary(BaseModel):
+    total_periodos: int
+    impactos_personas: int
+    impactos_vehiculos: int
+
+class SiteSummary(BaseModel):
+    total_sitios: int
+    impactos_mensuales: int
+    impactos_catorcenal: int
+    alcance_mensual_promedio: float
+
 class CampaignBase(BaseModel):
     name: str
     tipo_campania: str
@@ -71,6 +89,9 @@ class Campaign(CampaignBase):
 class CampaignDetail(Campaign):
     periods: List[CampaignPeriod]
     sites: List[CampaignSite]
+    general_summary: GeneralSummary
+    period_summary: PeriodSummary
+    site_summary: SiteSummary
 
     model_config = {
         "from_attributes": True

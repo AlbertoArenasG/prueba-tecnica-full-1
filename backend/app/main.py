@@ -149,9 +149,57 @@ def search_campaigns_by_date(
 @app.get("/campaigns/{campaign_id}", response_model=schemas.CampaignDetail)
 def read_campaign(campaign_id: str, db: Session = Depends(get_db)):
     """
-    Get detailed information for a specific campaign.
+    Get detailed information for a specific campaign with summary data.
     """
     campaign = crud.get_campaign(db, campaign_id)
     if campaign is None:
         raise HTTPException(status_code=404, detail="Campaign not found")
-    return campaign
+
+    def safe_sum(values):
+        return sum(v for v in values if v is not None)
+
+    campaign_data = schemas.Campaign.from_orm(campaign).dict()
+    periods = [schemas.CampaignPeriod.from_orm(period).dict() for period in campaign.periods]
+    sites = [schemas.CampaignSite.from_orm(site).dict() for site in campaign.sites]
+
+    period_summary = {
+        "total_periodos": len(periods),
+        "impactos_personas": safe_sum(
+            period["impactos_periodo_personas"] for period in periods
+        ),
+        "impactos_vehiculos": safe_sum(
+            period["impactos_periodo_vehiculos"] for period in periods
+        ),
+    }
+
+    total_sites = len(sites)
+    impactos_mensuales = safe_sum(site["impactos_mensuales"] for site in sites)
+    impactos_catorcenal = safe_sum(site["impactos_catorcenal"] for site in sites)
+    alcance_promedio = (
+        safe_sum(site["alcance_mensual"] for site in sites) / total_sites
+        if total_sites > 0 else 0.0
+    )
+
+    site_summary = {
+        "total_sitios": total_sites,
+        "impactos_mensuales": impactos_mensuales,
+        "impactos_catorcenal": impactos_catorcenal,
+        "alcance_mensual_promedio": round(alcance_promedio, 2),
+    }
+
+    general_summary = {
+        "impactos_personas": campaign_data.get("impactos_personas"),
+        "impactos_vehiculos": campaign_data.get("impactos_vehiculos"),
+        "alcance": campaign_data.get("alcance"),
+        "frecuencia_calculada": campaign_data.get("frecuencia_calculada"),
+        "frecuencia_promedio": campaign_data.get("frecuencia_promedio"),
+    }
+
+    return {
+        **campaign_data,
+        "periods": periods,
+        "sites": sites,
+        "general_summary": general_summary,
+        "period_summary": period_summary,
+        "site_summary": site_summary,
+    }
