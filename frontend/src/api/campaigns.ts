@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Campaign, CampaignDetail } from '../types/campaign';
+import { Campaign, CampaignDetail, PaginatedResponse } from '../types/campaign';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
@@ -33,25 +33,30 @@ api.interceptors.response.use(
     }
 );
 
-export const getCampaigns = async (
-    page: number,
-    pageSize: number,
-    tipoCampania?: string
-): Promise<{ data: Campaign[]; total: number }> => {
-    const skip = page * pageSize;
+interface ListParams {
+    page?: number;
+    limit?: number;
+    tipoCampania?: string;
+}
+
+interface DateSearchParams extends ListParams {
+    startDate: string;
+    endDate: string;
+}
+
+export const getCampaigns = async ({
+    page = 1,
+    limit = 5,
+    tipoCampania,
+}: ListParams): Promise<PaginatedResponse<Campaign>> => {
     const params = new URLSearchParams({
-        skip: skip.toString(),
-        limit: pageSize.toString(),
+        page: page.toString(),
+        limit: limit.toString(),
         ...(tipoCampania && { tipo_campania: tipoCampania }),
     });
 
-    try {
-        const response = await api.get(`/campaigns/?${params}`);
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching campaigns:', error);
-        throw error;
-    }
+    const response = await api.get(`/campaigns/?${params.toString()}`);
+    return response.data;
 };
 
 export const getCampaignDetail = async (campaignId: string): Promise<CampaignDetail> => {
@@ -59,15 +64,21 @@ export const getCampaignDetail = async (campaignId: string): Promise<CampaignDet
     return response.data;
 };
 
-export const searchCampaignsByDate = async (
-    startDate: string,
-    endDate: string
-): Promise<Campaign[]> => {
+export const searchCampaignsByDate = async ({
+    startDate,
+    endDate,
+    page = 1,
+    limit = 5,
+    tipoCampania,
+}: DateSearchParams): Promise<PaginatedResponse<Campaign>> => {
     const params = new URLSearchParams({
         start_date: startDate,
         end_date: endDate,
+        page: page.toString(),
+        limit: limit.toString(),
+        ...(tipoCampania && { tipo_campania: tipoCampania }),
     });
 
-    const response = await api.get(`/campaigns/search-by-date/?${params}`);
+    const response = await api.get(`/campaigns/search-by-date?${params.toString()}`);
     return response.data;
 };

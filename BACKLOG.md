@@ -24,7 +24,7 @@
 | B5 | Backend | API listado campañas | Ajustar `/campaigns`: paginación servidor (límite 5 por defecto), filtro `tipo_campania` opcional y metadatos (`total`, `page`, `pageSize`). | [x] Completado | B4 |
 | B6 | Backend | Búsqueda por fechas | Fortalecer `/campaigns/search-by-date` con validación, parseo seguro y mejoras de rendimiento (índices). Responder con el mismo formato del listado. | [x] Completado | B5 |
 | B7 | Backend | Datos de detalle/resumen | Ampliar `/campaigns/{id}` (o rutas nuevas) para entregar los tres datasets de “Resumen” listos para gráficas y agregados útiles. | [x] Completado | B5 |
-| B8 | Frontend | Capa cliente API | Centralizar configuración Axios (base URL/env), modelos TS alineados con Pydantic, estados de carga/error y hooks para listar/buscar/detallar. | [ ] Por hacer | B5-B7 |
+| B8 | Frontend | Capa cliente API | Centralizar configuración Axios (base URL/env), modelos TS alineados con Pydantic, estados de carga/error y hooks para listar/buscar/detallar. | [x] Completado | B5-B7 |
 | B9 | Frontend | Tabla y paginación | Construir tabla con 5 filas por página, columnas requeridas y botones sincronizados con los metadatos de paginación. | [ ] Por hacer | B8 |
 | B10 | Frontend | Filtros y búsqueda | Selector de tipo y formulario de rango de fechas usando `react-hook-form` + `zod`; integrar con la recarga del backend manteniendo los parámetros. | [ ] Por hacer | B8 |
 | B11 | Frontend | Visualizaciones detalle | Panel/modal con resúmenes de sitios, periodos y campaña usando gráficas sencillas (D3/Recharts) alimentadas por el backend. | [ ] Por hacer | B7-B10 |

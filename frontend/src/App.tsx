@@ -8,54 +8,60 @@ function App() {
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [page, setPage] = useState(0);
-    const [pageSize] = useState(10);
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(5);
     const [tipoCampania, setTipoCampania] = useState<string | undefined>();
+    const [total, setTotal] = useState(0);
+    const [dateFilter, setDateFilter] = useState<{ startDate: string; endDate: string } | null>(null);
 
     useEffect(() => {
         loadCampaigns();
-    }, [page, pageSize, tipoCampania]);
+    }, [page, pageSize, tipoCampania, dateFilter]);
 
     const loadCampaigns = async () => {
         try {
             setLoading(true);
-            setError(null); // Clear any previous errors
-            console.log('Loading campaigns...', { page, pageSize, tipoCampania });
-            const response = await getCampaigns(page, pageSize, tipoCampania);
-            console.log('Campaigns loaded:', response);
-            if (Array.isArray(response.data)) {
-                setCampaigns(response.data);
-            } else {
-                console.error('Invalid response format:', response);
-                setError('Invalid data format received from server');
-            }
+            setError(null);
+
+            const response = dateFilter
+                ? await searchCampaignsByDate({
+                    startDate: dateFilter.startDate,
+                    endDate: dateFilter.endDate,
+                    page,
+                    limit: pageSize,
+                    tipoCampania,
+                })
+                : await getCampaigns({ page, limit: pageSize, tipoCampania });
+
+            setCampaigns(response.data);
+            setTotal(response.total);
         } catch (err) {
-            console.error('Error in loadCampaigns:', err);
+            console.error('Error loading campaigns:', err);
             setError(err instanceof Error ? err.message : 'Error loading campaigns');
-            setCampaigns([]); // Reset campaigns on error
+            setCampaigns([]);
+            setTotal(0);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleDateRangeSubmit = async (startDate: string, endDate: string) => {
-        try {
-            setLoading(true);
-            const data = await searchCampaignsByDate(startDate, endDate);
-            setCampaigns(data);
-        } catch (err) {
-            setError('Error searching campaigns');
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
+    const handleDateRangeSubmit = (startDate: string, endDate: string) => {
+        setPage(1);
+        setDateFilter({ startDate, endDate });
     };
 
     const handleTipoCampaniaChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const value = event.target.value;
         setTipoCampania(value === '' ? undefined : value);
-        setPage(0);
+        setPage(1);
     };
+
+    const clearDateFilter = () => {
+        setDateFilter(null);
+        setPage(1);
+    };
+
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     if (error) {
         return <div className="text-red-600">{error}</div>;
@@ -68,6 +74,14 @@ function App() {
             <div className="section">
                 <h2 className="section-title">Search by Date Range</h2>
                 <DateRangeForm onSubmit={handleDateRangeSubmit} />
+                {dateFilter && (
+                    <button
+                        onClick={clearDateFilter}
+                        className="mt-2 px-3 py-1 border rounded text-sm"
+                    >
+                        Clear date filter
+                    </button>
+                )}
             </div>
 
             <div className="form-group">
@@ -93,17 +107,20 @@ function App() {
                         data={campaigns}
                         onRowClick={(campaign) => console.log('Selected campaign:', campaign)}
                     />
-                    <div className="mt-4 flex justify-between">
+                    <div className="mt-4 flex items-center justify-between">
                         <button
-                            onClick={() => setPage(p => Math.max(0, p - 1))}
-                            disabled={page === 0}
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            disabled={page === 1}
                             className="px-4 py-2 border rounded disabled:opacity-50"
                         >
                             Previous
                         </button>
+                        <span className="px-4 py-2">
+                            Page {page} of {totalPages}
+                        </span>
                         <button
                             onClick={() => setPage(p => p + 1)}
-                            disabled={campaigns.length < pageSize}
+                            disabled={page >= totalPages}
                             className="px-4 py-2 border rounded disabled:opacity-50"
                         >
                             Next
