@@ -10,7 +10,7 @@ def get_campaigns(
     limit: int = 10,
     tipo_campania: Optional[str] = None
 ):
-    query = db.query(models.Campaign)
+    query = db.query(models.Campaign).order_by(models.Campaign.fecha_inicio.desc())
     if tipo_campania:
         query = query.filter(models.Campaign.tipo_campania == tipo_campania)
     total = query.count()

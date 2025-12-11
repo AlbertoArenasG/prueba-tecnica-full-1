@@ -19,12 +19,11 @@ Sobre este este esqueleto, construir un API HTTP y una interfaz de aplicación p
 ### Vista Principal de Campañas
 - Tabla con todas las campañas publicitarias
 - Información detallada: nombre, tipo, fechas, impactos y alcance
-- Paginación de resultados (5 elementos por página)
+- Paginación de resultados (5 elementos por página) directamente desde el backend (`/campaigns?page=1&limit=5`)
 
 ### Sistema de Filtros
-- **Por Tipo de Campaña:**
-  - Mensual
-  - Catorcenal
+- **Por Tipo de Campaña:** (parámetro `tipo_campania` aceptando `mensual` o `catorcenal`)
+- **Navegación:** (parámetros `page` 1-indexado y `limit` para controlar la paginación)
 - **Por Rango de Fechas:**
   - Búsqueda de campañas activas en períodos específicos
 

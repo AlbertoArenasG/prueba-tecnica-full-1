@@ -41,9 +41,12 @@ def get_db():
 
 @app.get("/campaigns/", response_model=Dict[str, Any])
 def read_campaigns(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(10, ge=1, le=100),
-    tipo_campania: Optional[str] = None,
+    page: int = Query(1, ge=1, description="Número de página (1-indexado)"),
+    limit: int = Query(5, ge=1, le=50, description="Resultados por página"),
+    tipo_campania: Optional[str] = Query(
+        None,
+        description="Filtra por tipo de campaña (mensual/catorcenal)"
+    ),
     db: Session = Depends(get_db)
 ):
     """
@@ -51,13 +54,30 @@ def read_campaigns(
     """
     logger = logging.getLogger("uvicorn.error")
     try:
-        campaigns, total = crud.get_campaigns(db, skip=skip, limit=limit, tipo_campania=tipo_campania)
+        normalized_type: Optional[str] = None
+        if tipo_campania:
+            normalized_type = tipo_campania.lower()
+            allowed_types = {"mensual", "catorcenal"}
+            if normalized_type not in allowed_types:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"tipo_campania debe ser uno de: {', '.join(sorted(allowed_types))}"
+                )
+
+        skip = (page - 1) * limit
+
+        campaigns, total = crud.get_campaigns(
+            db,
+            skip=skip,
+            limit=limit,
+            tipo_campania=normalized_type
+        )
         data = [schemas.Campaign.from_orm(campaign).dict() for campaign in campaigns]
-        logger.info("Fetched %s campaigns (total=%s, skip=%s, limit=%s)", len(data), total, skip, limit)
+        logger.info("Fetched %s campaigns (total=%s, page=%s, limit=%s)", len(data), total, page, limit)
         return {
             "data": data,
             "total": total,
-            "page": skip // limit,
+            "page": page,
             "pageSize": limit
         }
     except Exception as exc:
